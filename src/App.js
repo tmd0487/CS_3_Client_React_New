@@ -6,18 +6,9 @@ import Login from './notmember/login/Login';
 import Signup from './notmember/signup/Signup';
 import MainIndex from './notmember/mainIndex/MainIndex';
 
-
-
-
-
-
-
-
 function App() {
   // TODO: 로그인 하면 true로 바뀌도록 설정 필요
-  const [isLogin, setIsLogin] = useState(true); 
-
-
+  const [isLogin, setIsLogin] = useState(false); 
 
   return (
     <div className="container">
@@ -27,7 +18,6 @@ function App() {
           <Route path='/signup/*' element={ <Signup /> } /> {/*회원가입*/}
 
           <Route path='/*' element={<MainIndex isLogin={isLogin} />} /> {/*탑바 + 바디있는 곳으로 이동*/}
-
 
         </Routes>
       </BrowserRouter>
