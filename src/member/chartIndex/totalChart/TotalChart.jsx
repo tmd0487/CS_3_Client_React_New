@@ -45,11 +45,15 @@ const TotalChart = ({ menuList, activeMenu, currentWeek, standardData, actualDat
     <div className={styles.contentBox}>
       {/* 실제 차트 들어가는 자리 */}
       <div className={styles.chartArea}>
-        {/* 3. activeMenu=0이 Default이므로, 바로 차트를 렌더링합니다. */}
-        <ReactECharts
-          option={getRadarOption()}
-          style={{ height: '100%', width: '100%' }}
-        />
+        {activeMenu === 0 ? (
+          <ReactECharts
+            option={getRadarOption()}
+            style={{ height: '100%', width: '100%' }}
+          />
+        ) : (
+          // activeMenu가 0이 아닐 때: 플레이스홀더 텍스트 표시
+          <> {menuList[activeMenu]} 차트 표시 영역</>
+        )}
       </div>
     </div>
   );
