@@ -40,6 +40,7 @@ function LoginBox({setBabySeq}) {
               <label htmlFor="pw">비밀번호</label> 
               <input type="password" id="pw" name="pw" placeholder="비밀번호"
               value={data.pw} onChange={handleChange}/>
+
             </div>
           </div>
 
@@ -47,6 +48,7 @@ function LoginBox({setBabySeq}) {
             <button className={styles.logbut}
             onClick={handleComplete}>
               로그인</button>
+
           </div>
 
           <p className={styles.signup}>
