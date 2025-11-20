@@ -15,7 +15,7 @@ const ChooseType = () => {
     const isLogin = useAuthStore((state) => state.isLogin);
     const [showNewDiv, setShowNewDiv] = useState(false);      // 임산모 상세 화면
     const [showNewDivTwo, setShowNewDivTwo] = useState(false); // 육아 상세 화면
-    const [inputBlocks, setInputBlocks] = useState([]); // 입력 블록 관리
+    const [inputBlocks, setInputBlocks] = useState([{}]); // 입력 블록 관리
     const clickplusRef = useRef(null);
 
     const [hover, setHover] = useState(false); // hover 상태
@@ -188,7 +188,7 @@ const ChooseType = () => {
 
                                         <div className={styles.babyparty}>
                                             <label htmlFor={`bp-${idx}`}>출생일</label>
-                                            <input type="date" id={`bp-${idx}`} placeholder="출생일" />
+                                            <input type="date" id={`bp-${idx}`} name={`pastDateInput${idx}`} placeholder="출생일" />
                                         </div>
 
                                         <div className={styles.babyname}>
@@ -300,7 +300,7 @@ const ChooseType = () => {
 
                                         <div className={styles.babyparty}>
                                             <label htmlFor={`bp-${idx}`}>출생일</label>
-                                            <input type="date" id={`bp-${idx}`} placeholder="출생일" />
+                                            <input type="date" id={`bp-${idx}`} name={`futureDateInput${idx}`} placeholder="출생일" />
                                         </div>
 
                                         <div className={styles.babyname}>

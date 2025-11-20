@@ -10,7 +10,7 @@ const FindId = () => {
   const [isCompleted, setIsCompleted] = useState("");
 
   const {
-    data, handleChange, handleLoginKeyUp, emailAuthClick, handleComplete
+    data, regexAuth, inputCount, handleChange, handleLoginKeyUp, emailAuthClick, handleComplete
   } = useFindId(setIsCompleted);
 
   return (
@@ -37,14 +37,14 @@ const FindId = () => {
 
               <div className={styles.idmiddleone}>
                 <label htmlFor="ema">이메일</label>
-                <input type="text" id="email" placeholder="이메일" 
+                <input type="text" id="email" placeholder="이메일" className={`${!regexAuth.email && inputCount.email > 0 ? styles.auth : ""}`}
                 name="email" value={data.email} onChange={handleChange}/>
                 <button className={styles.dlswmd} onClick={emailAuthClick}>인증요청</button>
               </div>
 
               <div className={styles.idmiddletwo}>
                 <label htmlFor="ema">인증확인</label>
-                <input type="text" id="code" placeholder="인증확인"
+                <input type="text" id="code" placeholder="인증확인" className={`${!regexAuth.code && inputCount.code > 0 ? styles.auth : ""}`}
                 name="code" value={data.code} onChange={handleChange} onKeyUp={handleLoginKeyUp}/>
               </div>
 

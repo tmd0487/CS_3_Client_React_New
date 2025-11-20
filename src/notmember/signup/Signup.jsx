@@ -8,7 +8,7 @@ function Signup() {
     const navigate = useNavigate();
 
     const {
-        data, regexAuth, inputCount, isNoCode,
+        data, regexAuth, inputCount, isNoCode, todayString,
         chackClick, emailAuthClick, handleComplete, handleLoginKeyUp,
         hendleChange, handleIntegerInput, handleCheckbox
     } = useSignup(navigate);
@@ -156,6 +156,7 @@ function Signup() {
                             placeholder="생년월일"
                             className={`${styles.inputError} ${!regexAuth.birthDate && inputCount.birthDate > 0 ? styles.borderRegex : ""}`}
                             onChange={hendleChange}
+                            max={todayString}
                         /> <br />
                     </div>
 

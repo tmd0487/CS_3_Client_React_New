@@ -15,18 +15,24 @@ function useFindId(setIsCompleted) {
         email: false, code: false
     });
 
+    // css 카운트... 흑흑
+    const [inputCount, setInputCount] = useState({
+        email: 0, code: 0
+    });
+
     // 정규식
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 
     // input 핸들러 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
+        setInputCount(prev => ({ ...prev, [name]: 1 }));
         setData(prev => ({ ...prev, [name]: value }));
         setRegexAuth(prev => {
             let newAuth = { ...prev };
             if (name === "email") {
                 newAuth.email = emailRegex.test(value);
+                setRegexAuth(prev=>({...prev, code : false}));
             } else if (name === "code") {
                 newAuth.code = serverAuthCode ? (value == serverAuthCode) : false;
             }
@@ -79,8 +85,12 @@ function useFindId(setIsCompleted) {
 
         caxios.post("/user/pindIdByEmail", { email: data.email })
             .then(resp => {
-                console.log("응앵", resp.data);
-                setIsCompleted(resp.data);
+                if (resp.data) {
+                    console.log("응앵", resp.data);
+                    setIsCompleted(resp.data);
+                }else{
+                    setIsCompleted("존재하지 않는 회원입니다.");
+                }
             })
             .catch(err => {
                 console.error(err);
@@ -88,7 +98,7 @@ function useFindId(setIsCompleted) {
     }
 
     return {
-        data, handleChange, handleLoginKeyUp, emailAuthClick, handleComplete
+        data, regexAuth, inputCount, handleChange, handleLoginKeyUp, emailAuthClick, handleComplete
     }
 }
 export default useFindId;
