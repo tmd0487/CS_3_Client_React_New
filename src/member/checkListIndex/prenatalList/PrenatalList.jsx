@@ -1,52 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import styles from "./PrenatalList.module.css";
-
-// -----------------------------------------------------
-// 데이터 구조 정의
-const INITIAL_CHECKLIST = [
-  {
-    week: "24개월 이후",
-    checks: [
-      {
-        id: 1,
-        title: "4차 영유아 건강검진",
-        date: "2025.11.17",
-        isDone: false,
-      },
-      {
-        id: 2,
-        title: "4차 영유아 건강검진",
-        date: "2025.11.17",
-        isDone: false,
-      },
-    ],
-  },
-  {
-    week: "18개월 이후",
-    checks: [
-      {
-        id: 3,
-        title: "3차 영유아 건강검진",
-        date: "2025.11.10",
-        isDone: false,
-      },
-      { id: 4, title: "독감 예방접종", date: "2025.11.10", isDone: false },
-    ],
-  },
-  {
-    week: "12개월 이후",
-    checks: [
-      {
-        id: 5,
-        title: "2차 영유아 건강검진",
-        date: "2025.10.01",
-        isDone: false,
-      },
-    ],
-  },
-];
-// -----------------------------------------------------
+import { FETAL_CHECKLIST, BABY_CHECKLIST } from "./checklistData";
+import UsePrenatalList from "./UsePrenatalList";
 
 // --- CheckItem 컴포넌트 (반복되는 체크 항목) ---
 const CheckItem = ({ check, onToggle }) => {
@@ -74,6 +30,7 @@ const CheckItem = ({ check, onToggle }) => {
     </motion.div>
   );
 };
+
 
 // --- WeekSection 컴포넌트 ---
 const WeekSection = ({ data, onToggle, isSpecialWeek }) => {
@@ -113,8 +70,10 @@ const WeekSection = ({ data, onToggle, isSpecialWeek }) => {
 };
 
 // --- 메인 컴포넌트 ---
-const PrenatalList = () => {
-  const [checklist, setChecklist] = useState(INITIAL_CHECKLIST);
+const PrenatalList = ({ babyData }) => {
+  const initialChecklist =
+    babyData?.status !== "infant" ? FETAL_CHECKLIST : BABY_CHECKLIST;
+  const [checklist, setChecklist] = useState(initialChecklist);
 
   const handleToggleCheck = (checkId) => {
     setChecklist((prevList) =>

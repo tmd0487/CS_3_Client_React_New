@@ -1,17 +1,7 @@
 import { motion } from "framer-motion";
 import styles from "./SymptomList.module.css";
-
-// 더미 데이터
-const SYMPTOM_DATA = [
-  {
-    week: "24개월 이후",
-    checks: [
-      { id: 1, title: "4차 영유아 건강검진" },
-      { id: 2, title: "독감 예방접종" },
-    ],
-  },
-  { week: "18개월 이후", checks: [{ id: 3, title: "3차 영유아 건강검진" }] },
-];
+import { FETAL_CHECKLIST, BABY_CHECKLIST } from "./list";
+import UseSymptomList from "./UseSymptomList";
 
 // CheckItem 컴포넌트
 const CheckItem = ({ check, index }) => {
@@ -34,7 +24,9 @@ const CheckItem = ({ check, index }) => {
 };
 
 // WeekSection 컴포넌트
-const WeekSection = ({ data, index }) => {
+const WeekSection = ({ data, index, isFetal }) => {
+  const title = isFetal ? data.week : data.month;
+
   return (
     <motion.div
       className={styles.weekSection}
@@ -46,7 +38,7 @@ const WeekSection = ({ data, index }) => {
       <div className={styles.itemActive} />
       <div className={styles.weekContent}>
         <div className={styles.weekTitleWrapper}>
-          <span className={styles.weekTitle}>{data.week}</span>
+          <span className={styles.weekTitle}>{title}</span>
         </div>
         <div className={styles.checkList}>
           {data.checks.map((check, i) => (
@@ -59,7 +51,10 @@ const WeekSection = ({ data, index }) => {
 };
 
 // SymptomList 메인
-const SymptomList = () => {
+const SymptomList = ({ babyData }) => {
+  const isFetal = babyData?.status !== "infant";
+  const initialChecklist = isFetal ? FETAL_CHECKLIST : BABY_CHECKLIST;
+
   return (
     <div className={styles.main}>
       <div className={styles.lineWrapper}>
@@ -67,8 +62,13 @@ const SymptomList = () => {
       </div>
 
       <div className={styles.sectionList}>
-        {SYMPTOM_DATA.map((section, i) => (
-          <WeekSection key={i} data={section} index={i} />
+        {initialChecklist.map((section, i) => (
+          <WeekSection
+            key={section.id}
+            data={section}
+            index={i}
+            isFetal={isFetal}
+          />
         ))}
       </div>
     </div>
