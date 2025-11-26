@@ -50,14 +50,13 @@ const MainIndex = () => {
       {/*컨테이너 영역*/}
       {/*헤더 영역 : 필요시 로그인 여부 데이터 넘겨서 display none 사용하세요*/}
       <header className={styles.MemberHeader}>
-        <CommonHeader />
+        <CommonHeader isLogin={isLogin} />
       </header>
       {/*바디 영역 : 필요시 로그인 여부 데이터 넘겨서 display none 사용하세요*/}
       <div className={mainLayoutClassName}>
         <Routes>
           <Route path="" element={!isLogin ? <Information /> : <BabyIndex />} />
           {/*로그인 안되어 있으면 ? 인포메이션 : 되면 베이비인덱스*/}
-          
           <Route path="board/*" element={<BoardIndex />} /> {/*커뮤니티*/}
           {/*-----------------------------------------------------------------------여기까지는 비회원도 접근 가능한 부분 아래는 불가하게 막아야함*/}
           <Route path="mypage" element={<ParentInfoIndex />} /> {/*회원가입*/}
