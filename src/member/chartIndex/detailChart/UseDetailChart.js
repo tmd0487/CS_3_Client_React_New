@@ -1,43 +1,35 @@
-// UseDetailChart.js
-import { FETAL_STANDARDS } from '../FetalStandardData'; // 전체 표준 데이터
-import { calculateFetalWeek } from '../../../member/utils/pregnancyUtils';
+import { FETAL_STANDARDS } from '../FetalStandardData';
 import { caxios } from '../../../config/config';
-export const UseDetailChart = (activeMenu, currentWeek, menuList, babyInfo) => {
-    if (!babyInfo || !babyInfo.babySeq) return Promise.resolve({});
+import { calculateFetalWeek } from '../../utils/pregnancyUtils';
 
-    const { babySeq, birthDate, status } = babyInfo;
+/**
+ * 아기 측정 데이터를 가져와서 ECharts 옵션 생성
+ */
+export const UseDetailChart = (activeMenu, currentWeek, menuList, standardData, babySeq, dueDate) => {
     const selectedMetricName = menuList[activeMenu];
-    const metricKeyMap = {
-        "몸무게": "EFW",
-        "머리둘레": "HC",
-        "머리직경": "OFD",
-        "복부둘레": "AC",
-        "허벅지 길이": "FL"
-    };
+    const metricKeyMap = { "몸무게": "EFW", "머리둘레": "HC", "머리직경": "OFD", "복부둘레": "AC", "허벅지 길이": "FL" };
     const selectedMetricKey = metricKeyMap[selectedMetricName];
-    if (!selectedMetricKey || !FETAL_STANDARDS[currentWeek]) return Promise.resolve({});
 
-    console.log("UseDetailChart 호출됨, babySeq:", babySeq);
+    if (!selectedMetricKey || !FETAL_STANDARDS[currentWeek] || !babySeq || !dueDate) {
+        return Promise.resolve({});
+    }
+    console.log("babySeq : " + babySeq);
     return caxios.get(`/chart/detail?babySeq=${babySeq}`)
         .then(res => {
-            console.log("서버 응답 받음", res.data);
             const records = res.data;
-
-            // 측정 데이터 주차 기준으로 매핑
             const actual = {};
-            records.forEach(r => {
-                let week;
-                if (status.toLowerCase() === 'fetus') {
-                    week = calculateFetalWeek(birthDate, r.measure_date);
-                    console.log("measure_date:", r.measure_date, "=> week:", week);
-                } else {
-                    week = null; // 생후 주차 로직 필요하면 추가
-                }
+            const metricKeys = ["EFW", "HC", "OFD", "AC", "FL"];
 
-                if (week) {
-                    if (!actual[week]) actual[week] = {};
-                    actual[week][r.measure_type] = r.measure_value;
-                }
+            // measure_date -> 주차
+            records.forEach(r => {
+                const week = calculateFetalWeek(dueDate, r.measure_date);
+                if (!actual[week]) actual[week] = {};
+                metricKeys.forEach(typeKey => {
+                    if (r[typeKey] !== undefined) {
+                        actual[week][typeKey] = r[typeKey]; // Key (EFW) : Value (3.1) 저장
+                    }
+                });
+                actual[week][r.measure_type] = r.measure_value;
             });
 
             const START_WEEK = 14;
@@ -45,16 +37,13 @@ export const UseDetailChart = (activeMenu, currentWeek, menuList, babyInfo) => {
             const weeks = [];
             const avgData = [];
             const actualBabyData = [];
-
-            let unit = FETAL_STANDARDS[14][selectedMetricKey].unit;
+            let unit = FETAL_STANDARDS[START_WEEK][selectedMetricKey].unit;
 
             for (let week = START_WEEK; week <= END_WEEK; week++) {
                 weeks.push(week);
                 avgData.push(FETAL_STANDARDS[week][selectedMetricKey]?.avg ?? null);
                 actualBabyData.push(actual[week]?.[selectedMetricKey] ?? null);
             }
-
-
 
             return {
                 title: { text: `${selectedMetricName} 성장 추이 (${START_WEEK}주~${END_WEEK}주)`, left: 'center' },
@@ -76,8 +65,7 @@ export const UseDetailChart = (activeMenu, currentWeek, menuList, babyInfo) => {
             };
         })
         .catch(err => {
-            console.error(err);
+            console.error("그래프 데이터 로딩 실패:", err);
             return {};
         });
-
 };

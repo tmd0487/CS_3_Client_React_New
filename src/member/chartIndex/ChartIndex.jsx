@@ -186,6 +186,7 @@ const ChartIndex = () => {
                     standardData={currentStandardData}
                     actualData={actualData}
                     isFetalMode={isFetalMode} // 모드 전달
+                    babyInfo={babyInfo}
                   />
                 )
               }

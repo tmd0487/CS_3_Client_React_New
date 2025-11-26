@@ -4,23 +4,40 @@ import { caxios } from "../../../config/config";
 export const submitChartData = async ({ inputs, date, babySeq, id }) => {
   const measureTypes = {
     EFW: inputs["몸무게"],
-    HC: inputs["머리직경"],
-    OFD: inputs["머리둘레"],
-    FL: inputs["복부둘레"],
-    AC: inputs["허벅지 길이"],
+    OFD: inputs["머리직경"],
+    HC: inputs["머리둘레"],
+    AC: inputs["복부둘레"],
+    FL: inputs["허벅지 길이"],
   };
 
-  const payload = Object.entries(measureTypes)
-    .filter(([_, value]) => value !== undefined && value !== null && value !== "")
-    .map(([type, value]) => ({
-      baby_seq: babySeq,
-      user_id: id,
-      measure_date: date,
-      measure_type: type,
-      measure_value: parseFloat(value),
-    }));
+  // const payload = Object.entries(measureTypes)
+  //   .filter(([_, value]) => value !== undefined && value !== null && value !== "")
+  //   .map(([type, value]) => ({
+  //     baby_seq: babySeq,
+  //     user_id: id,
+  //     measure_date: date,
+  //     measure_type: type,
+  //     measure_value: parseFloat(value),
+  //   }));
 
-  console.log("최종 전송 payload:", JSON.stringify(payload));
+  // console.log("최종 전송 payload:", JSON.stringify(payload));
+
+  const payload = Object.entries(measureTypes)
+    .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    .map(([type, value]) => {
+      const numeric = parseFloat(value);
+      if (isNaN(numeric)) return null; // 숫자가 아니면 건너뛰기 (필요하면 예외 처리)
+
+      return {
+        baby_seq: babySeq,
+        user_id: id,
+        measure_date: date,
+        measure_type: type,
+        measure_value: type === 'EFW' ? numeric * 1000 : numeric, // EFW는 g 단위 변환
+      };
+    })
+    .filter(Boolean); // map에서 null 제거
+
 
   try {
     await caxios.post("/chart/insert", payload);
