@@ -15,7 +15,7 @@ import styles from "./BoardList.module.css";
 import { UseBoardList } from "./UseBoardList";
 import PageNaviBar from "../../../common/pageNavi/PageNavi";
 
-const BoardList = () => {
+const BoardList = ({ handleDeleteBoard, handleEditBoard }) => {
   const {
     CATEGORY_MAP,
     CATEGORY_MAP_REVERSE,
@@ -37,7 +37,19 @@ const BoardList = () => {
     handleFindTarget,
     handleSendFindTarget,
     clearSearch,
-  } = UseBoardList();
+    handleMenuItemClick,
+    openMenuId,
+    setOpenMenuId,
+    isMine
+  } = UseBoardList({ handleDeleteBoard, handleEditBoard });
+
+
+
+
+
+
+
+
 
   return (
     <div className={styles.container}>
@@ -96,14 +108,10 @@ const BoardList = () => {
       {/* 리스트 */}
       <div className={styles.cardGrid}>
         {mergedList.length === 0 ? (
-
-          //게시글 존재하지 않을때
           <div className={styles.emptyMessage}>
             게시글이 존재하지 않습니다
           </div>
         ) : (
-
-          //게시글 존재할 때
           <ul className={styles.gridContainer}>
             {mergedList.map((item) => (
               <li
@@ -111,24 +119,70 @@ const BoardList = () => {
                 className={styles.card}
                 onClick={() => handleCardClick(item.board.board_seq)}
               >
-                <div className={styles.cardHeader}>
-                  <img
-                    src={thumbsUrlMap[item.board.board_seq]}
-                    alt=""
-                    className={styles.cardImage}
-                  />
-                  {console.log("썸네일 주소", thumbsUrlMap)}
-                  <button className={styles.menuBtn} onClick={handleMenuClick}>
-                    <MoreHorizontal size={24} />
+                {/* 카드 상단 이미지 영역 */}
+                <div
+                  className={`${styles.cardHeader} ${!thumbsUrlMap[item.board.board_seq] ? styles.noImage : ""
+                    }`}
+                >
+                  {/* 이미지 있을 때만 출력 */}
+                  {thumbsUrlMap[item.board.board_seq] && (
+                    <img
+                      src={thumbsUrlMap[item.board.board_seq]}
+                      alt=""
+                      className={styles.cardImage}
+                    />
+                  )}
+
+                  <button
+                    className={styles.menuBtn}
+                    aria-label="옵션 더보기"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleMenuClick(e, item.board.board_seq)
+                    }}
+                  >
+                    <MoreHorizontal size={24} color="#696b70" />
                   </button>
+
+                  {openMenuId === item.board.board_seq && (
+                    <div className={styles.dropdownMenu}>
+                      {isMine ? (
+                        <>
+                          <button
+                            className={styles.menuItem}
+                            onClick={(e) =>
+                              handleMenuItemClick(e, "edit", item.board.board_seq)
+                            }
+                          >
+                            수정
+                          </button>
+                          <button
+                            className={styles.menuItem}
+                            onClick={(e) =>
+                              handleMenuItemClick(e, "delete", item.board.board_seq)
+                            }
+                          >
+                            삭제
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          className={styles.menuItem}
+                          onClick={(e) =>
+                            handleMenuItemClick(e, "report", item.board.board_seq)
+                          }
+                        >
+                          신고
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.content}>
                   <div className={styles.textGroup}>
                     <span
-                      className={`${styles.categoryTag} ${styles[CATEGORY_MAP_REVERSE[item.board.board_type]]
-                        }`}
-                    >
+                      className={`${styles.categoryTag} ${styles[CATEGORY_MAP_REVERSE[item.board.board_type]]}`}>
                       {CATEGORY_MAP_REVERSE[item.board.board_type]}
                     </span>
 
@@ -151,7 +205,6 @@ const BoardList = () => {
             ))}
           </ul>
         )}
-
       </div>
 
 

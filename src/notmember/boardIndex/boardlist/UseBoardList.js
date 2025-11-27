@@ -26,7 +26,7 @@ async function getThumbUrl(sysname) {
     return URL.createObjectURL(resp.data);
 }
 
-export function UseBoardList() {
+export function UseBoardList({ handleDeleteBoard, handleEditBoard }) {
     const navigate = useNavigate();
 
     // ----------- 필터 버튼 상태변수-----------
@@ -45,6 +45,14 @@ export function UseBoardList() {
     // ----------- 검색용 상탭변수 -----------
     const [findTarget, setFindTarget] = useState("");
     const [isSearching, setIsSearching] = useState(false);
+
+    // ---------신고 혹은 수정 버튼인 드롭다운 메뉴 상태 관리-----------
+    const [openMenuId, setOpenMenuId] = useState(null);
+
+    //---------내 글인지 확인용 임시 변수-----------
+    const [isMine, setIsMine] = useState(false);
+
+
 
 
     // ----------- 컨텐츠 내용 임시 파싱하기 -----------
@@ -116,6 +124,12 @@ export function UseBoardList() {
         }
 
         const merged = data.boards.map(b => {
+
+            //내글인지 남의 글인지 확인
+            if (b.user_id === sessionStorage.getItem("id")) {
+                setIsMine(true);
+            }
+
             const preview = getPreviewText(b.content);
             console.log(preview)
             console.log(typeof b.content)
@@ -138,6 +152,9 @@ export function UseBoardList() {
     }
 
 
+
+
+
     // ----------- 버튼 onclick -----------
     //수정, 삭제 버튼 index에서 생성후 list와 detail로 props전달함 : seq번호만 전달하면 됨
     const handleTopBtn = (cat) => { //상단 카테고리 선택 버튼
@@ -150,8 +167,9 @@ export function UseBoardList() {
         navigate(`/board/detail?seq=${id}`);
     };
 
-    const handleMenuClick = (e) => { //카드 내 메뉴 클릭 시 이벤트 버블링 방지
-        e.stopPropagation();
+    const handleMenuClick = (e, id) => {
+        e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
+        setOpenMenuId(openMenuId === id ? null : id); // 현재 열려있으면 닫고, 닫혀있으면 엽니다.
     };
 
     const handleFindTarget = (e) => { //검색어 입력
@@ -182,9 +200,32 @@ export function UseBoardList() {
             processBoardData(resp.data);
         });
     };
+
+
     // 글작성 버튼 클릭 시 이동 함수
     const toWrite = () => {
         navigate("/board/write");
+    };
+
+
+    // 드롭다운 메뉴 항목 클릭 핸들러
+    const handleMenuItemClick = (e, action, id) => {
+        e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
+        setOpenMenuId(null); // 메뉴 닫기
+
+        switch (action) {
+            case "edit":
+                handleEditBoard(id)
+                break;
+            case "delete":
+                handleDeleteBoard(id);
+                break;
+            case "report":
+                console.log(`[${id}번] 게시글 신고 처리`);
+                break;
+            default:
+                break;
+        }
     };
 
 
@@ -211,5 +252,9 @@ export function UseBoardList() {
         handleSendFindTarget,
         setIsSearching,
         clearSearch,
+        handleMenuItemClick,
+        openMenuId,
+        setOpenMenuId,
+        isMine
     };
 }

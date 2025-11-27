@@ -13,7 +13,7 @@ import { caxios } from "config/config";
 function useFileUpload(options) {
 
 
-
+  //파일 배열 담기
   const [fileItems, setFileItems] = useState([])
   useEffect(() => {
   }, [fileItems])
@@ -45,7 +45,7 @@ function useFileUpload(options) {
     })
 
     try {
-      // ✅ 여기서 GCS 업로드 + URL 받기
+      // 여기서 GCS 업로드 + URL 받기
       const formData = new FormData()
       formData.append("file", file)
       formData.append("target_type", "board")
@@ -80,15 +80,10 @@ function useFileUpload(options) {
           )
         );
 
-        // ✅ 여기가 핵심 (부모로 URL 전달)
+        // 부모로 URL 전달
         options.setInEditorUploadFiles?.(prev =>
           prev.map(item =>
-            item.file === file
-              ? { ...item, url }   // ✅ url 주입
-              : item
-          )
-        );
-
+            item.file === file ? { ...item, url } : item));
         return url;
       }
       // if (!abortController.signal.aborted) {
@@ -218,7 +213,7 @@ function useFileUpload(options) {
         fileToRemove.abortController.abort()
       }
 
-      // ✅ 부모 state에서도 같이 제거
+      // 부모 state에서도 같이 제거
       options.setInEditorUploadFiles?.(prev =>
         prev.filter(item => item.file !== fileToRemove.file)
       )
@@ -237,7 +232,7 @@ function useFileUpload(options) {
       }
     })
     setFileItems([])
-    options.setInEditorUploadFiles?.(() => []) // ✅ 수정: 부모 동기화
+    options.setInEditorUploadFiles?.(() => []) // 수정: 부모 동기화
   }
 
   return {

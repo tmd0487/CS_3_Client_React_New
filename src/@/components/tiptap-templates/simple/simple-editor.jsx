@@ -169,11 +169,11 @@ export function SimpleEditor({ setInEditorUploadFiles, setEditorInstance }) {
     immediatelyRender: false,
 
 
-    // ✅ 여기서 수정시작
+
     onCreate({ editor }) {
       setEditorInstance?.(editor)
     },
-    // ✅ 여기서 수정끝
+
 
 
     editorProps: {

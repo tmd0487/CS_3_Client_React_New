@@ -27,16 +27,15 @@ function useInputBaby(inputBlocks, setInputBlocks, selectedGender, selectedBaby)
 
     // 어제 날짜
     const yesterdayDate = new Date(today); // 오늘 날짜 복사
-    yesterdayDate.setDate(today.getDate() + 1); 
+    yesterdayDate.setDate(today.getDate() + 1);
 
     const yYear = yesterdayDate.getFullYear();
     const yMonth = String(yesterdayDate.getMonth() + 1).padStart(2, '0');
     const yDay = String(yesterdayDate.getDate()).padStart(2, '0');
     const yesterdayString = `${yYear}-${yMonth}-${yDay}`;
 
-    // --- 추가: 성별/이미지 변경 시 inputBlocks 업데이트 함수 ---
+    // 성별/이미지 변경 시 inputBlocks 업데이트 함수
     const syncGenderAndImage = useCallback(() => {
-        // 모든 inputBlock 요소에 현재 선택된 성별과 이미지 정보를 동기화합니다.
         setInputBlocks(prevBlocks => {
             return prevBlocks.map(block => ({
                 ...block,
@@ -125,7 +124,7 @@ function useInputBaby(inputBlocks, setInputBlocks, selectedGender, selectedBaby)
     return {
         data, auth, inputCount, todayString, yesterdayString,
         handleChange, handleComplete,
-        syncGenderAndImage, handleLoginKeyUp 
+        syncGenderAndImage, handleLoginKeyUp
     }
 }
 export default useInputBaby;

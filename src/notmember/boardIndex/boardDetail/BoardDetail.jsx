@@ -11,50 +11,58 @@ import {
 import Comment from "./comment/Comment";
 import { UseBoardDetail } from "./UseBoardDetail";
 import { EditorContent } from "@tiptap/react";
-
-
-/* ✅ 더미 댓글 데이터 */
-const initialComments = [
-  {
-    id: 1,
-    nickname: "개발자1",
-    date: "2025.11.17",
-    text: "여기에 댓글이 들어갑니다.",
-    isReply: false,
-    replies: [
-      {
-        id: 11,
-        nickname: "기획자A",
-        date: "2025.11.18",
-        text: "답글입니다.",
-        isReply: true,
-        replies: [],
-      },
-    ],
-  },
-];
+import CommentItem from "./comment/Comment";
+import { FILE_SERVER } from "config/config";
 
 
 
 // --- 메인 컴포넌트 ---
 const BoardDetail = ({ handleDeleteBoard, handleEditBoard }) => {
+  // --- 댓글 데이터 ---
+
   const {
+    setIsMine,
     comments,
-    setComments,
     targetBoard,
     editor,
     targetBoardFile,
-    handleNavigateBack
-  } = UseBoardDetail({ initialComments });
+    handleNavigateBack,
+    postMenuOpen,
+    handlePostMenuToggle,
+    handlePostMenuItemClick,
+    commentMenuOpenId,
+    setCommentMenuOpenId,
+    isMine,
+    menuRef,
+    setPostMenuOpen,
+    isReply,
+    setIsReply,
+    parentCommentId,
+    setParentCommentId,
+    clearReplyMode,
+    handleSubmit,
+    handleInputChange,
+    commentContent,
+    reloadComments,
+    setCommentContent,
+    isEdit,
+    setIsEdit,
+    setEditCommentId
+  } = UseBoardDetail({ handleDeleteBoard, handleEditBoard });
+
+
+
 
 
 
   return (
-    <div className={styles.parent}>
+    <div className={styles.parent} onClick={clearReplyMode}>
       {/* 상단 뒤로가기 버튼 영역 */}
       <div className={styles.topBar}>
         <div className={styles.backButtonWrapper}>
-          <button className={styles.backButtonText} onClick={handleNavigateBack}>뒤로가기</button>
+          <button className={styles.backButtonText} onClick={handleNavigateBack}>
+            뒤로가기
+          </button>
         </div>
       </div>
 
@@ -64,10 +72,46 @@ const BoardDetail = ({ handleDeleteBoard, handleEditBoard }) => {
           {/* 게시글 제목 및 작성자 정보 */}
           <div className={styles.postHeader}>
             <div className={styles.postTitleWrapper}>
-              <b className={styles.postTitle}>
-                {targetBoard.title}
-              </b>
-              <MoreHorizontal size={24} color="#696b70" />
+
+
+              <b className={styles.postTitle}>{targetBoard.title}</b>
+              {/* 게시글 옵션 아이콘 및 드롭다운 메뉴 */}
+              <div className={styles.menuContainer}>
+                <MoreHorizontal
+                  size={24}
+                  color="#696b70"
+                  onClick={handlePostMenuToggle}
+                />
+                {postMenuOpen && (
+                  <div className={styles.dropdownMenu} ref={menuRef}>
+                    {isMine ? (
+                      // 내가 작성한 글
+                      <>
+                        <button
+                          className={styles.menuItem}
+                          onClick={(e) => handlePostMenuItemClick(e, "수정", targetBoard.board_seq)}
+                        >
+                          수정
+                        </button>
+                        <button
+                          className={styles.menuItem}
+                          onClick={(e) => handlePostMenuItemClick(e, "삭제", targetBoard.board_seq)}
+                        >
+                          삭제
+                        </button>
+                      </>
+                    ) : (
+                      // 남이 작성한 글
+                      <button
+                        className={styles.menuItem}
+                        onClick={(e) => handlePostMenuItemClick(e, "신고", targetBoard.board_seq)}
+                      >
+                        신고
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             <div className={styles.authorNicknameWrapper}>
               <div className={styles.userNickname}>{targetBoard.nickname}</div>
@@ -87,7 +131,7 @@ const BoardDetail = ({ handleDeleteBoard, handleEditBoard }) => {
                 targetBoardFile.map(file => (
                   <a
                     key={file.file_seq}
-                    href={`http://192.168.0.3/file/download?sysname=${encodeURIComponent(file.sysname)}&file_type=board/file/`}
+                    href={`${FILE_SERVER}/file/download?sysname=${encodeURIComponent(file.sysname)}&file_type=board/file/`}
                     download
                     style={{ display: "block", marginBottom: "6px" }}
                   >
@@ -98,16 +142,75 @@ const BoardDetail = ({ handleDeleteBoard, handleEditBoard }) => {
                 <div>첨부파일 없음</div>
               )}
 
-              <button onClick={() => handleDeleteBoard(targetBoard.board_seq)}>삭제</button>
 
             </div>
           </div>
         </div>
 
         {/* 댓글 영역 */}
-        <div className={styles.commentSection}>
-          <Comment comments={comments} setComments={setComments} />
+        <div className={styles.commentSection} >
+          {/* 댓글 목록 */}
+          <div className={styles.commentListWrapper}>
+            <div className={styles.commentList} >
+
+              {/* 배열 데이터를 맵핑하여 댓글 렌더링 */}
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment.comment_seq}
+                  comment={comment}
+                  commentMenuOpenId={commentMenuOpenId}
+                  setCommentMenuOpenId={setCommentMenuOpenId}
+                  menuRef={menuRef}
+                  closePostMenu={() => setPostMenuOpen(false)}
+                  setPostMenuOpen={setPostMenuOpen}
+                  setIsReply={setIsReply}
+                  setParentCommentId={setParentCommentId}
+                  reloadComments={reloadComments}
+                  commentContent={commentContent}
+                  setIsEdit={setIsEdit}
+                  setEditCommentId={setEditCommentId}
+                  setCommentContent={setCommentContent}
+                />
+              ))}
+
+            </div>
+          </div>
+
+
+          {/* 페이지네이션 영역 
+          <div className={styles.paginationWrapper}>
+            <PageNavi page={page} setPage={setPage} count={count} totalCount ={totalCount} typeBtn={type}/>
+          </div>
+            */}
+
+          {/* 댓글 입력창 */}
+          <div className={styles.commentInputArea}>
+            <div className={styles.commentInputBox}>
+              <div className={styles.inputField}>
+                <input
+                  onClick={(e) => e.stopPropagation()}
+                  value={commentContent}
+                  onChange={handleInputChange}
+                  type="text"
+                  placeholder={
+                    isEdit
+                      ? "댓글을 수정하세요"
+                      : isReply
+                        ? "대댓글을 입력하세요"
+                        : "메시지를 입력하세요"
+                  }
+                  className={styles.inputElement}
+                />
+              </div>
+              <div className={styles.submitButton} onClick={handleSubmit}>
+                <Send size={24} color="#fff" />
+              </div>
+            </div>
+          </div>
         </div>
+
+
+
       </div>
     </div >
   );

@@ -1,12 +1,19 @@
 
 import { useEffect, useRef, useState } from "react";
-import { caxios } from "../../../config/config";
-import { useNavigate } from "react-router-dom";
+import { caxios, FILE_SERVER } from "../../../config/config";
+import { useLocation, useNavigate } from "react-router-dom";
 import imageCompression from "browser-image-compression";
+import { setContent } from "@tiptap/core";
 
 
 export function UseBoardWrite() {
     const navigate = useNavigate();
+    // ----------- 일반작성 모드, 편집모드 감지하기 -----------
+    const location = useLocation();
+    const isEditMode = location.state?.mode == "edit";
+    const editBoardSeq = location.state?.board_seq;
+
+
 
     // ----------- 버튼 상태변수 -----------
     const [selectedVisibility, setSelectedVisibility] = useState("all"); //공개여부
@@ -20,13 +27,24 @@ export function UseBoardWrite() {
         "무료나눔": "free",
         "질문": "qna",
     };
-    // ----------- 파일 상태변수 -----------
+    // ----------- 첨부 파일 파일 상태변수 -----------
     const [uploadedFiles, setUploadedFiles] = useState([]);
+    const [originalServerFiles, setOriginalServerFiles] = useState([]);
+
+
+    // ----------- 에디터 내의 이미지 상태변수 -----------
     const [inEditorUploadFiles, setInEditorUploadFiles] = useState([]);
+    const [existingThumbnailSysname, setExistingThumbnailSysname] = useState(null);
+
+
 
     const [editorInstance, setEditorInstance] = useState(null);
+    const [initialContent, setInitialContent] = useState(null);
     const editorRef = useRef(null);
     const titleRef = useRef(null);
+    // ------------로그인 여부 -------------
+    const id = sessionStorage.getItem("id");
+
 
 
     // ----------- 파일 관련 함수  -----------
@@ -51,6 +69,15 @@ export function UseBoardWrite() {
         setUploadedFiles((prevFiles) =>
             prevFiles.filter((_, index) => index !== indexToRemove)
         );
+    };
+
+    //파일 사이즈 받아오기
+    const getFileSize = async (sysname) => {
+        const resp = await fetch(
+            `${FILE_SERVER}/file/download?sysname=${encodeURIComponent(sysname)}&file_type=board/file/`
+        );
+        const blob = await resp.blob();
+        return blob.size;
     };
 
 
@@ -84,8 +111,6 @@ export function UseBoardWrite() {
         }
         return arr;
     };
-
-
     //thumbnail용: 썸네일 파일 추출 함수
     const extractThumbnailFile = (contentJSON, inEditorUploadFiles) => { //에디터 객체 전체, 에디터에 업로드되었던 파일 리스트
         let firstImageUrl = null;
@@ -105,7 +130,6 @@ export function UseBoardWrite() {
         const matched = inEditorUploadFiles.find(item => item.url === firstImageUrl);//에디터에 업로드되었던 파일 리스트에서 URL이 일치하는 파일 찾기
         return matched?.file || null;
     };
-
     //thumbnail 압축시키기
     const compressImage = async (file) => {
         const options = {
@@ -127,58 +151,260 @@ export function UseBoardWrite() {
             return file;
         }
     }
+    // img src(URL) → File 객체로 변환
+    const imageUrlToFile = async (imageUrl, filename = "thumbnail.jpg") => {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+
+        return new File([blob], filename, {
+            type: blob.type || "image/jpeg",
+            lastModified: Date.now(),
+        });
+    };
+
 
     //작성완료
     const handleComplete = async () => {
         if (!editorInstance) return;
 
+        const title = titleRef.current?.value || "";
+
+        // tiptap 에디터 순수 텍스트 추출
+        const editorText = editorInstance?.getText().replace(/\s/g, "");
+
+        // 제목이 비었거나, 에디터가 비었거나, 엔터/공백만 있을 때
+        if (!title.trim() || !editorText) {
+            alert("제목과 내용을 입력하세요");
+            return;
+        }
+
         const form = new FormData();
         // 1) 파일 담기
         uploadedFiles.forEach(file => {
-            form.append("files", file);
+            if (!file.isServerFile) {
+                form.append("files", file);
+            }
         });
 
-
         // 2) 에디터 JSON 담기
-        const contentJSON = editorInstance.getJSON();
-        console.log("에디터 내용:", contentJSON);
+        const contentJSON = editorInstance.getJSON(); //컨텐츠
         form.append("content", JSON.stringify(contentJSON));
-
-        const imageSysList = extractImages(contentJSON);
-        console.log("이미지 리스트:", imageSysList);
+        const imageSysList = extractImages(contentJSON); //이미지의 시스네임 리스트
         form.append("imageSysList", JSON.stringify(imageSysList));
+
 
         //3) 작성 완료 시, 실제 보내지는 이미지 리스트와 미리보기 배열과 비교해서 썸네일 파일 한개 추출
         // 썸네일 파일 추출 기준: 1. 실제로 작성 완료시 보내진 에디터에 포함된 파일일 것 2.가장 첫번째 사진일 것
-        const thumbnailFile = extractThumbnailFile(contentJSON, inEditorUploadFiles);
-        const compressedThumbnail = thumbnailFile ? await compressImage(thumbnailFile) : null;
-        console.log("in에디터 파일들:", inEditorUploadFiles);
-        console.log("유효한 에디터 파일들:", thumbnailFile);
-        form.append("thumbnail", compressedThumbnail);
+        // const thumbnailFile = extractThumbnailFile(contentJSON, inEditorUploadFiles);
+        // const compressedThumbnail = thumbnailFile ? await compressImage(thumbnailFile) : null;
+        // form.append("thumbnail", compressedThumbnail);
+
+        // 3) 썸네일 처리
+        // 에디터 내용에서 이미지 sysname 리스트 뽑기
+        // const currentImageSysList = extractImages(contentJSON);
+        // const firstImageSysname = currentImageSysList[0] || null;
+
+        // // 3-1) 썸네일 파일 추출 (에디터에 올라갔던 파일 리스트 기준)
+        // let thumbnailFile = extractThumbnailFile(contentJSON, inEditorUploadFiles);
+
+        // // 3-2) 썸네일 파일이 있으면 압축해서 form에 추가
+        // if (thumbnailFile) {
+        //     const compressedThumbnail = await compressImage(thumbnailFile);
+        //     form.append("thumbnail", compressedThumbnail);
+        // }
+
+        // // 3-3) 수정 모드 썸네일 처리
+        // if (isEditMode) {
+        //     // 1. 이미지 전부 삭제됨 → 썸네일 제거
+        //     if (!firstImageSysname) {
+        //         form.append("removeThumbnail", "true");
+        //     }
+        //     // 2. 기존 썸네일과 현재 첫 이미지가 다르면 → 썸네일 변경 필요
+        //     else if (existingThumbnailSysname !== firstImageSysname) {
+
+        //         // ✅ 새로 추가된 이미지가 썸네일이 된 경우도 여기 포함됨
+        //         form.append("newThumbnailSysname", firstImageSysname);
+
+        //         // ✅ 이 이미지가 새로 업로드된 경우라면 다시 thumbnail 파일도 포함
+        //         const newThumbFile = extractThumbnailFile(contentJSON, inEditorUploadFiles);
+        //         if (newThumbFile) {
+        //             const compressedThumbnail = await compressImage(newThumbFile);
+        //             form.append("thumbnail", compressedThumbnail);
+        //         }
+        //     }
+        // }
+
+        // ===== 썸네일 처리 (수정 모드 전용) =====
+        const currentImageSysList = extractImages(contentJSON);
+        const firstImageSysname = currentImageSysList[0] || null;
+
+        if (!isEditMode) { // 작성 모드일때는 : 최초 작성 → 첫 이미지 썸네일
+            const thumbnailFile = extractThumbnailFile(contentJSON, inEditorUploadFiles);
+            if (thumbnailFile) {
+                const compressedThumbnail = await compressImage(thumbnailFile);
+                form.append("thumbnail", compressedThumbnail);
+            }
+        }
+        else { // 수정 모드일때는 :
+
+            // 1. 이미지가 아예 없음 → 썸네일 제거
+            if (!firstImageSysname) {
+                form.append("removeThumbnail", "true");
+            }
+
+            // 새 이미지가 추가됐는지 확인
+            const newThumbFile = extractThumbnailFile(contentJSON, inEditorUploadFiles);
+
+            // 2. 새로 추가된 이미지가 있으면 → 그게 썸네일
+            if (newThumbFile) {
+                const compressedThumbnail = await compressImage(newThumbFile);
+                form.append("thumbnail", compressedThumbnail);
+            }
+
+            // 3. 기존 이미지 중 순서 변경 → 첫 이미지가 바뀐 경우
+            if (existingThumbnailSysname !== firstImageSysname && firstImageSysname) {
+
+                const imageUrl = `${FILE_SERVER}/file/download?sysname=${firstImageSysname}&file_type=board/img/`;
+                // img src → File 객체 재생성
+                const recreatedFile = await imageUrlToFile(imageUrl, firstImageSysname);
+                // 압축
+                const compressedThumbnail = await compressImage(recreatedFile);
+                // form에 다시 추가
+                form.append("thumbnail", compressedThumbnail);
+                form.append("justChanged", true);
+            }
+        }
+
 
 
         // 3) 나머지 값 담기
         form.append("title", titleRef.current.value);
-
         const board_type = CATEGORY_MAP[selected];
         form.append("board_type", board_type);
-
         let is_privated = selectedVisibility === "member" ? true : false;
-        if (selectedVisibility)
-            form.append("is_privated", is_privated);
-        try {
-            await caxios.post("/board/write", form)
-                .then(resp => {
-                    console.log(resp);
-                    alert("작성이 완료되었습니다!")
-                    navigate("/board");
-                })
+        if (selectedVisibility) form.append("is_privated", is_privated);
 
 
-        } catch (err) {
-            alert("업로드에 실패했습니다. 다시 시도하세요");
+        //4) 수정 모드일때는
+        if (isEditMode) {
+            form.append("board_seq", editBoardSeq);
+
+            try {
+                //기존 파일 중 삭제된 것 서버에 알려주기
+                const deletedFiles = originalServerFiles
+                    .filter(orig =>
+                        !uploadedFiles.some(cur => cur.file_seq === orig.file_seq)
+                    )
+                    .map(f => f.file_seq);
+
+                form.append("deletedFiles", JSON.stringify(deletedFiles));
+                await caxios.put("/board/update", form);
+                alert("수정이 완료되었습니다!")
+                navigate(-1);
+
+            } catch (error) {
+                alert("게시글 수정에 실패했습니다. 다시 시도하세요");
+            }
         }
+
+
+        else {
+            try {
+                await caxios.post("/board/write", form)
+                    .then(resp => {
+                        console.log(resp);
+                        alert("작성이 완료되었습니다!")
+                        navigate("/board");
+                    })
+
+
+            } catch (err) {
+                alert("업로드에 실패했습니다. 다시 시도하세요");
+            }
+        }
+
+
+
     };
+
+    ///-----------------------useEffect 모음
+    useEffect(() => {
+        if (!isEditMode) {
+            setUploadedFiles([]);
+            setExistingThumbnailSysname(null);
+            setOriginalServerFiles([]);
+            setInitialContent(null);
+        }
+    }, [isEditMode]);
+    // 편집 모드라면, 기존 내용 가져와서 세팅하기
+    useEffect(() => {
+        if (!isEditMode) { return; }
+
+        caxios.get(`/board/detail?seq=${editBoardSeq}`).then(async resp => {
+            const board = resp.data.boards;
+            const files = resp.data.files;
+
+            titleRef.current.value = board.title;
+            setSelectedVisibility(board.is_privated ? "member" : "all");
+
+            const reverseMap = {
+                review: "후기",
+                free: "무료나눔",
+                qna: "질문",
+            };
+            setSelected(reverseMap[board.board_type]);
+            const mappedFiles = new Map();
+            await Promise.all(
+                files.map(async (file) => {
+                    const size = await getFileSize(file.sysname);
+                    mappedFiles.set(file.file_seq, {
+                        file: null,
+                        name: file.oriname,
+                        size: size,
+                        sysname: file.sysname,
+                        isServerFile: true,
+                        file_seq: file.file_seq,
+                    });
+                })
+            );
+            const parsed = JSON.parse(board.content);
+            const oldImages = extractImages(parsed);
+            setExistingThumbnailSysname(oldImages[0] || null);//썸네일의 시스네임 저장하기
+
+            setUploadedFiles(Array.from(mappedFiles.values()));
+            setInitialContent(board.content);
+            setOriginalServerFiles(
+                files.map(f => ({
+                    file_seq: f.file_seq
+                }))
+            );
+        });
+
+    }, [])
+    useEffect(() => {
+        if (!editorInstance || !initialContent) return;
+
+        try {
+            const parsed = JSON.parse(initialContent);
+            editorInstance.commands.setContent(parsed);
+        } catch (e) {
+            console.error("에디터 내용 파싱 실패", e);
+        }
+    }, [editorInstance, initialContent]);
+
+
+    //로그인 안햇으면 빠꾸 시키기
+    const alertShown = useRef(false);
+    useEffect(() => {
+        if (alertShown.current) return;
+
+        if (!id || id === "anonymousUser") {
+            alertShown.current = true;
+            alert("로그인 후 이용 가능한 서비스 입니다");
+            navigate("/login");
+        }
+    }, []);
+
 
     return {
         handleBack,
@@ -199,6 +425,6 @@ export function UseBoardWrite() {
         options,
         isOpen,
         selected,
-        selectedVisibility
+        selectedVisibility,
     };
 }
