@@ -30,11 +30,6 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, inputs, setInputs, actu
 
   const handleSubmit = async () => {
 
-    console.log(" 현재 inputs:", inputs);
-    console.log(" 현재 date:", date);
-    console.log(" 빈값 체크 결과:", Object.keys(inputs).filter(key => !inputs[key]));
-
-
 
     //날짜 검사
     if (!date || date.trim() === "") {
@@ -69,11 +64,14 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, inputs, setInputs, actu
     //   alert("입력되지 않은 항목이 있습니다.");
     //   return;
     // }
+
     //서버 전송
     const res = await submitChartData({ inputs, date, babySeq, id, measureTypes });
+    console.log("submitChartData 결과:", res);
 
+    
     if (res?.data) {
-
+      console.log("이거 실행 되나요?");
       await fetchActualData(); 
       setIsEditing(false);
     }
@@ -126,7 +124,7 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, inputs, setInputs, actu
           value={date}
           min={todayStr}
           max={todayStr}
-          disabled={hasData}
+          disabled={isDisabled}
           onChange={(e) => setDate(e.target.value)}
         />
 
@@ -142,6 +140,7 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, inputs, setInputs, actu
                       type="number"
                       // value={actualData[item] ?? ""}
                       value={inputs[item] ?? ""}
+                      disabled={isDisabled}
                       onChange={(e) => handleChange(item, e.target.value)}
                       placeholder={item}
                     />
@@ -153,6 +152,7 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, inputs, setInputs, actu
                     type="number"
                     // value={actualData[item] ?? ""}
                     value={inputs[item] ?? ""}
+                    disabled={isDisabled}
                     onChange={(e) => handleChange(item, e.target.value)}
                     placeholder={item}
                   />
@@ -171,6 +171,7 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, inputs, setInputs, actu
                   className={styles.input}
                   type="number"
                   value={inputs[activeItem] ?? ""}
+                  disabled={isDisabled}
                   onChange={(e) => handleChange(activeItem, e.target.value)}
                   placeholder={activeItem}
                 />
@@ -181,6 +182,7 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, inputs, setInputs, actu
                 className={styles.input}
                 type="number"
                 value={inputs[activeItem] ?? ""}
+                disabled={isDisabled}
                 onChange={(e) => handleChange(activeItem, e.target.value)}
                 placeholder={activeItem}
               />

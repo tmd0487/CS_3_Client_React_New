@@ -18,7 +18,7 @@ console.log("payload", JSON.stringify(payload));
     const res = await caxios.post("/chart/insert", payload);
     alert("저장 완료!");
 
-    return res; // 
+    return res.data; // 
   } catch (err) {
     console.error(err);
     alert("저장 실패");
