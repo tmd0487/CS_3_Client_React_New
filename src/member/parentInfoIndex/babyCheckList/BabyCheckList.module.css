@@ -12,7 +12,6 @@
   flex-direction: column;
   /* gap: 10px; */
   box-sizing: border-box;
-
   max-height: 660px;
   overflow-y: auto;
 }
@@ -47,7 +46,6 @@
   padding: 0 20px;
   box-sizing: border-box;
   border-bottom: 1px solid #b9b9b9;
-  /* border:1px solid black; */
 }
 
 /* ==============================
@@ -88,6 +86,7 @@
   text-overflow: ellipsis;
   height: 48px; /* Badge 높이에 맞춤 */
   flex-shrink: 0;
+  
 }
 
 .pastText {
@@ -172,6 +171,8 @@
   font-size: 16px;
   color: #b9b9b9;
   font-weight: 500;
+  text-align: start; /* center → start */
+  align-self: flex-start;
 }
 
 .futureAction {
