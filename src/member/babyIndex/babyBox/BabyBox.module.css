@@ -53,6 +53,23 @@
   object-fit: contain;
   transform: translate(-50%, -55%);
 
+<<<<<<< HEAD
   top: 10%;
   left: 36%;
 }
+=======
+  top: 16%;
+  left: 33%;
+}
+
+.parentingImage {
+  width: 28%;
+  position: absolute;
+  height: auto;
+  object-fit: contain;
+  transform: translate(-50%, -55%);
+
+  top: 10%;
+  left: 36%;
+}
+>>>>>>> 323620399281d17a8f567cbc7aaba30a12b9a1f2
