@@ -99,7 +99,7 @@ const ChartIndex = () => {
       });
 
       setActualData(response.data || {});
-      console.log("🟢 Actual Data 로딩 완료:", response.data);
+      console.log(" Actual Data 로딩 완료:", response.data);
 
     } catch (error) {
       console.error("Actual Data 조회 실패:", error);

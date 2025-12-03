@@ -4,6 +4,7 @@ import { submitChartData, updateChartData } from "./UseChartInput"; // JS 분
 import useAuthStore from "../../../store/useStore";
 import { FETAL_STANDARDS } from "../FetalStandardData";
 import { fetalWeekStartEnd, infantMonthStartEnd } from "member/utils/pregnancyUtils";
+import { INFANT_STANDARDS } from "../InfantStandardData";
 const ChartInput = ({ menuList, activeMenu, currentWeek, isFetalMode, inputs, setInputs, actualData, setActualData, fetchActualData, measureTypes }) => {
   const activeItem = menuList[activeMenu];
   const { id, babySeq, babyDueDate } = useAuthStore(state => state);
@@ -31,7 +32,7 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, isFetalMode, inputs, se
 
   const handleChange = (key, value) => {
     const type = Object.keys(map).find(t => map[t] === key); // EFW, HC 등
-    const standard = FETAL_STANDARDS[currentWeek]?.[type];
+    const standard = isFetalMode ? FETAL_STANDARDS[currentWeek]?.[type] : INFANT_STANDARDS[currentWeek]?.[type];
     if (!standard) {
       setInputs(prev => ({ ...prev, [key]: value }));
       return;
@@ -221,7 +222,7 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, isFetalMode, inputs, se
                       placeholder={item}
                     />
                     <span className={styles.unit}>kg</span>
-                  </div>// 잠시 kg -> g으로 바꿔서 사용 >> 나중에 다바꿔야해서 편의상 g 사용해야할거같음
+                  </div>
                 ) : (
                   <div className={styles.inputWithUnit}>
                     <input
@@ -233,7 +234,7 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, isFetalMode, inputs, se
                       onChange={(e) => handleChange(item, e.target.value)}
                       placeholder={item}
                     />
-                    <span className={styles.unit}>mm</span>
+                    <span className={styles.unit}>{isFetalMode ? "mm" : "cm"}</span>
                   </div>
                 )}
               </div>
@@ -266,7 +267,7 @@ const ChartInput = ({ menuList, activeMenu, currentWeek, isFetalMode, inputs, se
                   onChange={(e) => handleChange(activeItem, e.target.value)}
                   placeholder={activeItem}
                 />
-                <span className={styles.unit}>mm</span>
+                <span className={styles.unit}>{isFetalMode ? "mm" : "cm"}</span>
               </div>
             )}
           </div>
