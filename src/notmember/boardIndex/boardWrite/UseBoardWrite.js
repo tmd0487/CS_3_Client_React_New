@@ -208,10 +208,7 @@ export function UseBoardWrite() {
             alert(`본문 용량이 너무 큽니다. 현재 ${contentBytes} bytes / 제한 ${MAX_CONTENT_BYTES} bytes`);
             return;
         }
-        console.log("contentBytes:", contentBytes);
-        console.log("json length:", JSON.stringify(contentJSON).length);
 
-        return;
 
         const form = new FormData();
         // 1) 파일 담기

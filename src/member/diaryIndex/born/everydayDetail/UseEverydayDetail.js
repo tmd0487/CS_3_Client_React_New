@@ -132,7 +132,10 @@ export function UseEverydayDetail({ currentDate, setCurrentDate, fetchData }) {
     //----------------------------------------------------------------유즈이펙트
     useEffect(() => {
         const load = async () => {
-            const result = await fetchData(reverseTypeMap[activeType], currentDate);
+            const formattedDate = currentDate.toLocaleDateString("en-CA", {
+                timeZone: "Asia/Seoul",
+            });
+            const result = await fetchData(reverseTypeMap[activeType], formattedDate);
 
             console.log("활성 타입:", result);
 
