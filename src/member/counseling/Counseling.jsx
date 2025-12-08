@@ -49,6 +49,7 @@ const Counseling = ({ onClose }) => {
       ...prev.filter((msg) => msg.type !== "card"),
       {
         sender: "me",
+        type: "text",
         text: inputText,
         senderName: "나",
         time: formatTime,
@@ -108,7 +109,7 @@ const Counseling = ({ onClose }) => {
                   <button
                     key={idx}
                     className={styles.cardButton}
-                    onClick={() => selectBtn(btn)}
+                    onClick={(e) => selectBtn(e)}
                   >
                     {btn}
                   </button>
