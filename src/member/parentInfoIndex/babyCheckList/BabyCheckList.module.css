@@ -11,23 +11,29 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  max-height: 660px;
   overflow-y: auto;
+
+  /* 🔥 아기 리스트 스크롤바 노란색 적용 */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #f0d827 transparent;
 }
 
 .container::-webkit-scrollbar {
-  width: 5px; 
-}
-.container::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2); 
-  border-radius: 3px;
-}
-.container::-webkit-scrollbar-track {
-  background: transparent;
+  width: 8px; /* 스크롤바 두께 */
 }
 
-.container > div:last-child {
-  border-bottom: none;
+.container::-webkit-scrollbar-track {
+  background: transparent; /* 트랙 배경 */
+}
+
+.container::-webkit-scrollbar-thumb {
+  background-color: #f0d827; /* 스크롤바 색상 */
+  border-radius: 4px;
+  border: 2px solid #ffffff; /* 여백 효과 */
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background-color: #d9b600; /* hover 시 색상 */
 }
 
 /* ==============================
@@ -242,6 +248,15 @@
   color: #b0b0b0;
   font-size: 16px;
 }
+
+/* 일정 없을 때 container */
+.emptyContainer {
+  display: flex;
+  justify-content: center;  /* 가로 중앙 */
+  align-items: center;      /* 세로 중앙 */
+  overflow: hidden;         /* 스크롤 제거 */
+  height: 100%;             /* 부모 높이 전체 차지 */
+}
 /* ==============================
    반응형: 모바일 / 태블릿 / PC
    ============================== */
@@ -269,7 +284,7 @@
 /* 일반 모바일 (376px ~ 414px) */
 @media (min-width: 376px) and (max-width: 414px) {
   .container { padding: 6px; gap: 6px; max-height: calc(100vh - 20px); }
-  .past, .future { min-height: 50px; padding: 6px; }
+  .past, .future {  padding: 6px; }
   .pastBadge, .futureBadge { width: 100px; height: 32px; font-size: 11px; }
   .pastContent, .futureContent { 
     font-size: 10px; gap: 3px; height: 30px;

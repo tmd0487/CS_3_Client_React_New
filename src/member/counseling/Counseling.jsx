@@ -107,7 +107,7 @@ const Counseling = ({ onClose }) => {
                   <button
                     key={idx}
                     className={styles.cardButton}
-                    onClick={() => selectBtn(btn)}
+                    onClick={(e) => selectBtn(e)}
                   >
                     {btn}
                   </button>
