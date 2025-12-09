@@ -134,45 +134,6 @@ const BabyArticle = () => {
 
   const [articles, setArticles] = useState([]);
 
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-
-  useEffect(() => {
-    const fetchArticles = async () => {
-      const API_URL = "http://10.5.5.5/article/select";
-
-      try {
-        const response = await fetch(API_URL);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setArticles(data);
-      } catch (e) {
-        console.error("Failed to fetch articles:", e);
-        setError("기사를 불러오는데 실패했습니다.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchArticles();
-  }, []);
-
-
-  if (isLoading) {
-    return <div className={styles.loading}>기사 로딩 중...</div>;
-  }
-
-  if (error) {
-    return <div className={styles.error}>{error}</div>;
-  }
-
-
   return (
     <div className={styles.sectionWrapper}>
       <div className={styles.cardGrid}>
