@@ -89,7 +89,7 @@ export function UseEverydayDetail({ currentDate, setCurrentDate, fetchData, fetc
         setEditData(item);// 수정할 데이터 저장
         setShowModal(true);
     };
-    const handleDelete = async (item) => { //삭제
+        const handleDelete = async (item) => { //삭제
         const baseType = item.record_type.split("/")[0];// record_type → activeType 찾기
         console.log(baseType)
         try {
@@ -109,8 +109,6 @@ export function UseEverydayDetail({ currentDate, setCurrentDate, fetchData, fetc
                 })
             }
             alert("삭제가 완료되었습니다")
-            const averages = await fetchAvgData(startDate, endDate);
-            setAvg(averages);
             load();
         } catch (error) {
             console.log(error);
